@@ -1,4 +1,18 @@
-let myLibrary = []; //constant list of book objects
+
+//search local storage to see if an array exists
+if (localStorage.getItem("myLibraryStored") == null) {
+    var myLibrary = [];
+    //let myLibrary = JSON.parse(localStorage.getItem("myLibraryStored"))
+}
+else {
+    var myLibrary = JSON.parse(localStorage.getItem("myLibraryStored"))
+}
+
+//let myLibrary = [];
+
+
+
+
 
 //adding the button to call inputs
 let ButtonArea = document.querySelector('#buttonArea')
@@ -10,7 +24,7 @@ ButtonArea.appendChild(newBookButton);
 //adding the button to submit inputs
 let submitButton = document.createElement('button');
 submitButton.textContent = "submit book";
-
+displayBooks(myLibrary);
 
 function Book(author, title, pages, read) {
     //the constructor
@@ -18,10 +32,11 @@ function Book(author, title, pages, read) {
     this.title = title;
     this.pages = pages;
     this.read = read;
+    //add function in prototype and then add that function as an event listener
     this.toggle = function() {
         this.read = (this.read == 'Yes') ? 'No' : 'Yes'
     }
-    //add function in prototype and then add that function as an event listener
+    
 }
 
 function inputButton() {
@@ -102,11 +117,14 @@ function submitButtonActions() {
     myLibrary.push(newBook);
     //add the display books function to add books to page
     displayBooks(myLibrary);
+
+    //this should be where you update local storage
+    localStorage.setItem('myLibraryStored', JSON.stringify(myLibrary))
     
 }
 function displayBooks(array) {
     let maindiv = document.querySelector('#mainDiv');
-    maindiv.textContent = '';
+    maindiv.textContent = ''; 
     for (const element of array) {
         let div = document.createElement('div');
         div.className = "displayBook"
@@ -122,7 +140,7 @@ function displayBooks(array) {
         pages.textContent = "Pages: " + element.pages;
         //adding read or not
         let read = document.createElement('p')
-        read.textContent = "Have you read this? " + element.read
+        read.textContent = "Have you finished reading this? " + element.read
         maindiv.appendChild(div);
         div.appendChild(title);
         div.appendChild(author);
@@ -138,18 +156,20 @@ function displayBooks(array) {
         let index = array.findIndex(function (array) {
             return array.title == element.title && array.author == element.author;
         })
-        //div.id = index;
         //add the listener to the x button
-        deleteBook.addEventListener('click', deleteButton )
+        //THIS LISTENER IS THE PROBLEM, why is it going automatically? See if you can pass variable without it running immedialy
+        //HUGE lesson learned, event listner executes function immedialtly within if () attached, use portal to make new function
+        deleteBook.addEventListener('click', () => {
+            deleteButton(index) })
         div.appendChild(deleteBook)
-        //add a read status button that switches read status from "yes", "no" "almost"
-        //Note, cannot change read.textname because that does not stay when page reset(HEEEREEEEEE STARTTTT)
+        //add a read status button that switches read status from "yes", "no" 
         let toggleRead = document.createElement('button')
         toggleRead.textContent = 'toggle read status';
         toggleRead.addEventListener('click', () => {
             element.toggle();
             displayBooks(array);
         })
+        
         //its a strech but does this work????
         div.appendChild(toggleRead);
         
@@ -161,5 +181,8 @@ function displayBooks(array) {
 function deleteButton(index) {
     //simply the event listner that deletes the item from the library based on index and then resets the display
     myLibrary.splice(index, 1)
+    //Second instance of myLibrary changing, so adding local here too
+    localStorage.setItem('myLibraryStored', JSON.stringify(myLibrary))
     displayBooks(myLibrary);
 }
+
